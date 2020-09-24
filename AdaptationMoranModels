@@ -1,0 +1,79 @@
+def population_model(N, f_init=2, g_init=1, i=1,step=0.001, seed=0):
+    """
+    Return the population counts and the individual fitnesses for 
+    the extended Moran process with an constant r for each A cell, but adapting B cells
+    """
+    f = f_init
+    g = g_init
+    population = [0 for _ in range(i)] + [1 for _ in range(N - i)]
+    
+    counts = [(population.count(0))]
+    
+    np.random.seed(seed)
+    
+    while len(set(population)) == 2:
+        
+        fitness = []
+        
+        for _, cell in enumerate(population):
+            if cell == 0:
+                fitness.append(f)
+            else:
+                fitness.append(g) 
+
+        total_score = sum(fitness)
+        probabilities = [score / total_score for score in fitness]
+        
+        reproduce_index = np.random.choice(range(N), p=probabilities)
+        eliminate_index = np.random.randint(N)
+        
+        population[eliminate_index] = population[reproduce_index]
+        
+        if g <= f and g <= f-step:
+            g = g + step
+        else:
+            g=f
+            
+  
+        counts.append((population.count(0)))
+        
+        
+
+    return np.array(counts)
+    
+    
+    def single_cell_model(N, f_init=2, g_init=1, i=1, step = 0.1, seed=0):
+    """
+    Return the population counts for 
+    the extended Moran process with an increasing g for every B cell that is picked
+    """
+    population = [0 for _ in range(i)] + [1 for _ in range(N - i)]
+    counts = [(population.count(0))]
+    fitness = [f_init for _ in range(i)] + [g_init for _ in range(N - i)]
+        
+    
+    np.random.seed(seed)
+    
+    while len(set(population)) == 2:
+
+        total_score = sum(fitness)
+        probabilities = [score / total_score for score in fitness]
+        
+        reproduce_index = np.random.choice(range(N), p=probabilities)
+        eliminate_index = np.random.randint(N)
+        
+        
+        # increase fitness advantage if selected cell is a neutral
+        if fitness[reproduce_index] != f_init and fitness[reproduce_index] <= (f_init-step):
+            fitness[reproduce_index]= fitness[reproduce_index]+step
+        else:
+            fitness[reproduce_index]=f_init
+            
+        fitness[eliminate_index] = fitness[reproduce_index]
+        population[eliminate_index] = population[reproduce_index]
+        
+        counts.append((population.count(0)))
+        
+        
+
+    return np.array(counts)
